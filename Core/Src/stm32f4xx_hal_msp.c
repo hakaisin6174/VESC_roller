@@ -119,6 +119,27 @@ void HAL_CAN_MspInit(CAN_HandleTypeDef* hcan)
     /* USER CODE END CAN1_MspInit 1 */
 
   }
+  else if(hcan->Instance==CAN2)
+  {
+    /* CAN2はCAN1とクロックを共有するため、両方を有効にします。 */
+    HAL_RCC_CAN1_CLK_ENABLED++;
+    if(HAL_RCC_CAN1_CLK_ENABLED==1){
+      __HAL_RCC_CAN1_CLK_ENABLE();
+    }
+    __HAL_RCC_CAN2_CLK_ENABLE();
+
+    __HAL_RCC_GPIOB_CLK_ENABLE();
+    /**CAN2 GPIO Configuration
+    PB12     ------> CAN2_RX
+    PB13     ------> CAN2_TX
+    */
+    GPIO_InitStruct.Pin = GPIO_PIN_12|GPIO_PIN_13;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+    GPIO_InitStruct.Alternate = GPIO_AF9_CAN2;
+    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+  }
 }
 
 /**
@@ -151,6 +172,20 @@ void HAL_CAN_MspDeInit(CAN_HandleTypeDef* hcan)
     /* USER CODE BEGIN CAN1_MspDeInit 1 */
 
     /* USER CODE END CAN1_MspDeInit 1 */
+  }
+  else if(hcan->Instance==CAN2)
+  {
+    __HAL_RCC_CAN2_CLK_DISABLE();
+    HAL_RCC_CAN1_CLK_ENABLED--;
+    if(HAL_RCC_CAN1_CLK_ENABLED==0){
+      __HAL_RCC_CAN1_CLK_DISABLE();
+    }
+
+    /**CAN2 GPIO Configuration
+    PB12     ------> CAN2_RX
+    PB13     ------> CAN2_TX
+    */
+    HAL_GPIO_DeInit(GPIOB, GPIO_PIN_12|GPIO_PIN_13);
   }
 }
 
